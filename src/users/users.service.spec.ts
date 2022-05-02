@@ -42,7 +42,7 @@ describe('UsersService', () => {
       password: 'secret',
       idDevice: '',
       isSick: false,
-      isPosibleSick: false,
+      isPossibleSick: false,
     };
     expect(service.createNewUser(userRequest))
       .resolves.toEqual(userRequest)

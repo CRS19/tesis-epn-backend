@@ -1,9 +1,9 @@
-import { IsAlpha, IsBoolean, IsEmail, IsNotEmpty } from 'class-validator';
-import { IUser } from '../interface/users.interfaces';
+import { IsBoolean, IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IUser } from '../interfaces/users.interfaces';
 
 export class CreateUserRequestDTO implements IUser {
   @IsNotEmpty({ message: 'El nombre es requerido' })
-  @IsAlpha('El nombre debe contener solo letras')
+  @IsString()
   fullName: string;
 
   @IsNotEmpty({ message: 'Correo electrónico es requerido' })
@@ -20,5 +20,5 @@ export class CreateUserRequestDTO implements IUser {
   isSick: boolean;
 
   @IsBoolean({ message: 'El campo debe ser booleano' })
-  isPosibleSick: boolean;
+  isPossibleSick: boolean;
 }

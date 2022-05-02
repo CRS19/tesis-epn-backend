@@ -4,7 +4,7 @@ export interface IUser {
   password: string;
   idDevice: string;
   isSick: boolean;
-  isPosibleSick: boolean;
+  isPossibleSick: boolean;
 }
 
 export interface IUsersDB extends Document {
@@ -13,5 +13,5 @@ export interface IUsersDB extends Document {
   password: string;
   idDevice: string;
   isSick: boolean;
-  isPosibleSick: boolean;
+  isPossibleSick: boolean;
 }
