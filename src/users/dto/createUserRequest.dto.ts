@@ -13,7 +13,11 @@ export class CreateUserRequestDTO implements IUser {
   @IsNotEmpty({ message: 'El password es requerido' })
   password: string;
 
-  @IsNotEmpty({ message: 'El id del dispositivo es requerido' })
+  @IsNotEmpty({ message: 'El rol es requerido' })
+  @IsString()
+  rol: string;
+
+  @IsString()
   idDevice: string;
 
   @IsBoolean({ message: 'El campo debe ser booleano' })
@@ -21,4 +25,7 @@ export class CreateUserRequestDTO implements IUser {
 
   @IsBoolean({ message: 'El campo debe ser booleano' })
   isPossibleSick: boolean;
+
+  @IsBoolean({ message: 'El campo debe ser booleano' })
+  isDevice: boolean;
 }

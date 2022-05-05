@@ -14,20 +14,16 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   async validateUser(userName: string, pass: string): Promise<boolean> {
-    this.logger.debug(` | validateUser ${pass} y ${userName}`);
+    this.logger.log(` | validateUser ${userName}`);
 
     const user = await this.usersService.findUser(userName);
-
-    this.logger.debug(
-      ` | validateUser usuario encontrado ${JSON.stringify(user)}`,
-    );
 
     return this.validatePassword(pass, get(user, 'password', ''));
   }
 
   async generateAccessToken(name: string) {
     const user = await this.usersService.findUser(name);
-    const payload: JWTPayload = { userMail: user.mail };
+    const payload: JWTPayload = { userMail: user.mail, isDevice: true };
     return {
       access_token: this.jwtService.sign(payload),
       user,
@@ -38,9 +34,7 @@ export class AuthService {
     password: string,
     userPassword: string,
   ): Promise<boolean> {
-    this.logger.debug(
-      ` | validatePassword comparar ${password} y ${userPassword}`,
-    );
+    this.logger.log(` | validatePassword... `);
     return await bcrypt.compareSync(password, userPassword);
   }
 }

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { IUser, IUsersDB } from './interfaces/users.interfaces';
 import { Model } from 'mongoose';
 import { CreateUserRequestDTO } from './dto/createUserRequest.dto';
-import { isEmpty } from 'lodash';
+import { isNil } from 'lodash';
 
 @Injectable()
 export class UsersService {
@@ -25,9 +25,9 @@ export class UsersService {
 
   async vinculateDevice(mail: string, idDevice: string) {
     this.logger.log(` | vinculateDevice mail -> ${mail} `);
-    const user = await this.userModel.find({ mail });
+    const user = await this.userModel.findOne({ mail });
 
-    if (isEmpty(user)) return false;
+    if (isNil(user)) return false;
 
     const newUser = { ...user, idDevice };
 

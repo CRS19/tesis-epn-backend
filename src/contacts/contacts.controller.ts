@@ -12,6 +12,11 @@ export class ContactsController {
       response.status(HttpStatus.CREATED).json({
         message: 'ok',
       });
-    } catch (e) {}
+    } catch (e) {
+      console.log('error');
+      response.status(HttpStatus.NOT_MODIFIED).json({
+        message: 'Error to create contact',
+      });
+    }
   }
 }
