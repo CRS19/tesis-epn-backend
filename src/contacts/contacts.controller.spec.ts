@@ -1,3 +1,4 @@
+import { IContactRequest } from './interfaces/contacts.interface';
 import { ContactsService } from './contacts.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContactsController } from './contacts.controller';
@@ -6,8 +7,18 @@ import { set } from 'lodash';
 
 describe('ContactsController', () => {
   let controller: ContactsController;
-  let bodyMock = {
+  let bodyMock: IContactRequest = {
     idDevice: 'abc',
+    idContactDevice: 'contactABC',
+    rssi: 0,
+    isInit: false,
+  };
+  let mockContactsReturnValue = {
+    idDevice: 'myiddevice',
+    idContactDevice: 'idContactDevice',
+    rssi: -50,
+    timestampInit: 1652154938619,
+    timestampEnd: 1652155747284,
   };
 
   let responseJsonMock = {
@@ -42,6 +53,7 @@ describe('ContactsController', () => {
   });
 
   it('when /init POST http method is called, then createContact should return 201', async () => {
+    createContactMock.mockReturnValue(mockContactsReturnValue);
     await controller.createContact(responseMock, bodyMock);
 
     expect(createContactMock).toHaveBeenCalledTimes(1);
@@ -59,6 +71,19 @@ describe('ContactsController', () => {
     expect(responseMock.status).toHaveBeenCalledWith(304);
     expect(responseJsonMock.json).toHaveBeenCalledWith({
       message: 'Error to create contact',
+    });
+  });
+
+  it('when /init POST http method is called with body Info but is Double Initialized or Double end contact, then createContact should return 301', async () => {
+    set(bodyMock, 'idDevice', 'abc');
+    createContactMock.mockReturnValue(undefined);
+
+    await controller.createContact(responseMock, bodyMock);
+
+    expect(createContactMock).toHaveBeenCalledTimes(1);
+    expect(responseMock.status).toHaveBeenCalledWith(304);
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      message: 'Contacto no iniciado',
     });
   });
 });

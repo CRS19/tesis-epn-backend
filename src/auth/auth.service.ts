@@ -23,7 +23,10 @@ export class AuthService {
 
   async generateAccessToken(name: string) {
     const user = await this.usersService.findUser(name);
-    const payload: JWTPayload = { userMail: user.mail, isDevice: true };
+    const payload: JWTPayload = {
+      userMail: user.mail,
+      isDevice: user.isDevice,
+    };
     return {
       access_token: this.jwtService.sign(payload),
       user,
