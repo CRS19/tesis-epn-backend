@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
 import { IUser, IUsersDB } from './interfaces/users.interfaces';
 import { Model } from 'mongoose';
 import { CreateUserRequestDTO } from './dto/createUserRequest.dto';
@@ -14,8 +15,22 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   async createNewUser(userToInsert: CreateUserRequestDTO) {
-    const newUser = new this.userModel(userToInsert);
-    return newUser.save();
+    this.logger.log(`createNewUser | userToInsert -> ${userToInsert.mail}`);
+
+    const userExists = await this.userModel.exists({ mail: userToInsert.mail });
+
+    if (isNil(userExists)) {
+      const mySalt = await bcrypt.genSalt();
+      const encryptedPass = await bcrypt.hash(userToInsert.password, mySalt);
+
+      const newUser = new this.userModel({
+        ...userToInsert,
+        password: encryptedPass,
+      });
+      return newUser.save();
+    }
+
+    return;
   }
 
   async findUser(mail: string): Promise<IUsersDB> {

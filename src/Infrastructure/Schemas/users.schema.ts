@@ -1,7 +1,7 @@
 import { Schema } from 'mongoose';
 
 export const UserSchema = new Schema({
-  fullname: String,
+  fullName: String,
   idDevice: String,
   isDevice: Boolean,
   isPossibleSick: Boolean,
