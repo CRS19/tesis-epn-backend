@@ -1,7 +1,7 @@
 import { JWTPayload } from './interfaces/JWTPayload.interface';
 import { UsersService } from './../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { get } from 'lodash';
+import { get, unset } from 'lodash';
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
@@ -12,6 +12,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
   private readonly logger = new Logger(AuthService.name);
+  private readonly passwordPath = '_doc.password';
 
   async validateUser(userName: string, pass: string): Promise<boolean> {
     this.logger.log(` | validateUser ${userName}`);
@@ -23,7 +24,11 @@ export class AuthService {
 
   async generateAccessToken(name: string) {
     const user = await this.usersService.findUser(name);
-    const payload: JWTPayload = { userMail: user.mail, isDevice: true };
+    unset(user, this.passwordPath);
+    const payload: JWTPayload = {
+      user,
+    };
+
     return {
       access_token: this.jwtService.sign(payload),
       user,

@@ -5,15 +5,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { rolesEnum } from '../Enums/RolesEnum';
-import { JwtStrategy } from '../jwt.strategy';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(
-    private readonly reflector: Reflector,
-    private readonly jwtStrategy: JwtStrategy,
-  ) {}
+  constructor(private readonly reflector: Reflector) {}
   private readonly logger = new Logger(RolesGuard.name);
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

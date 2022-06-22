@@ -6,7 +6,7 @@ export interface IUser {
   isSick: boolean;
   mail: string;
   password: string;
-  rol: String;
+  rol: string;
 }
 
 export interface IUsersDB extends Document {
@@ -17,5 +17,5 @@ export interface IUsersDB extends Document {
   isSick: boolean;
   mail: string;
   password: string;
-  rol: String;
+  rol: string;
 }

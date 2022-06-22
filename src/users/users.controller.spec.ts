@@ -1,9 +1,11 @@
+import { rolesEnum } from './../auth/Enums/RolesEnum';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserRequestDTO } from './dto/createUserRequest.dto';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { unset } from 'lodash';
 import { vinculateDeviceRequest } from './dto/vinculateDeviceRequest.dto';
+import { IUsersDB } from './interfaces/users.interfaces';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -16,6 +18,16 @@ describe('UsersController', () => {
   let responseMock = {
     status: jest.fn((x) => responseJsonMock),
     send: jest.fn((x) => x),
+  };
+  let mockCreateUserServiceResponse = {
+    fullName: 'crs test',
+    idDevice: '1234',
+    isDevice: false,
+    isPossibleSick: false,
+    isSick: false,
+    mail: 'crs@gmail.com',
+    password: 'dsfasdf',
+    rol: rolesEnum.USER,
   };
 
   let bodyMock: CreateUserRequestDTO = {
@@ -55,12 +67,26 @@ describe('UsersController', () => {
     jest.clearAllMocks();
   });
 
-  it('When /Register is called whit a correct user, then createNewUser should return 201', async () => {
+  it('When /Register is called with a correct user, then createNewUser should return 201', async () => {
+    createNewUserMock.mockReturnValue(mockCreateUserServiceResponse);
+
     await controller.createNewUser(responseMock, bodyMock);
 
     expect(createNewUserMock).toHaveBeenCalledWith(bodyMock);
     expect(responseMock.status).toHaveBeenCalledWith(201);
     expect(responseJsonMock.json).toHaveBeenCalledWith({ message: 'ok' });
+  });
+
+  it('When /Register is called with a correct user but service return an undefined user, then createNewUser should return 406', async () => {
+    createNewUserMock.mockReturnValue(undefined);
+
+    await controller.createNewUser(responseMock, bodyMock);
+
+    expect(createNewUserMock).toHaveBeenCalledWith(bodyMock);
+    expect(responseMock.status).toHaveBeenCalledWith(406);
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      message: 'User Already Exists',
+    });
   });
 
   it('When /Register is called whit a incorrect correct user, then createNewUser should return 304', async () => {

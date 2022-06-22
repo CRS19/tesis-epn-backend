@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
+import { isNil } from 'lodash';
 
 @Controller('users')
 export class UsersController {
@@ -23,11 +24,25 @@ export class UsersController {
     @Res() response,
     @Body() createUserRequest: CreateUserRequestDTO,
   ) {
+    this.logger.log(
+      ` createNewUser | user to create -> ${createUserRequest.mail}`,
+    );
     try {
-      await this.userService.createNewUser(createUserRequest);
-      response.status(HttpStatus.CREATED).json({
-        message: 'ok',
+      const newUser = await this.userService.createNewUser(createUserRequest);
+
+      if (!isNil(newUser)) {
+        response.status(HttpStatus.CREATED).json({
+          message: 'ok',
+        });
+
+        return;
+      }
+
+      response.status(HttpStatus.NOT_ACCEPTABLE).json({
+        message: 'User Already Exists',
       });
+
+      return;
     } catch (e) {
       response.status(HttpStatus.NOT_MODIFIED).json({
         message: 'Error while create user',

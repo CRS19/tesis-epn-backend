@@ -1,4 +1,4 @@
+import { IUser } from './../../users/interfaces/users.interfaces';
 export interface JWTPayload {
-  userMail: string;
-  isDevice: boolean;
+  user: Partial<IUser>;
 }
