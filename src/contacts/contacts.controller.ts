@@ -2,8 +2,10 @@ import { ContactsService } from './contacts.service';
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
   Logger,
+  Param,
   Post,
   Res,
   UseGuards,
@@ -56,5 +58,20 @@ export class ContactsController {
 
       this.logger.error(` POST | createContact can not create contact`);
     }
+  }
+
+  @Get('data/:idDevice')
+  @hasRoles(rolesEnum.USER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  async getDataToPlot(@Res() res, @Param('idDevice') idDevice: string) {
+    this.logger.log(` | getDataToPlot `);
+
+    try {
+      const resposne = await this.contactsService.buildData(idDevice);
+
+      res.status(HttpStatus.OK).json({
+        ...resposne,
+      });
+    } catch (e) {}
   }
 }

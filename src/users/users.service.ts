@@ -1,10 +1,12 @@
+import { getNameInitials, rainbowGenerate } from './../utils/color-utils';
+import { INode } from './../contacts/interfaces/buildData.interfaces';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { IUser, IUsersDB } from './interfaces/users.interfaces';
 import { Model } from 'mongoose';
 import { CreateUserRequestDTO } from './dto/createUserRequest.dto';
-import { isNil } from 'lodash';
+import { isNil, get, set } from 'lodash';
 
 @Injectable()
 export class UsersService {
@@ -44,7 +46,7 @@ export class UsersService {
 
     if (isNil(user)) return false;
 
-    const newUser = { ...user, idDevice };
+    const newUser = { ...user, _doc: { ...get(user, '_doc', {}), idDevice } };
 
     const updatedUser = await this.userModel.findOneAndUpdate(
       { mail },
@@ -52,6 +54,25 @@ export class UsersService {
       { new: true },
     );
 
-    return true;
+    set(updatedUser, '_doc.password', undefined);
+    console.log(updatedUser);
+
+    return updatedUser;
+  }
+
+  async getUsersAsNodes(idDevice: string): Promise<INode> {
+    const user = await this.userModel.findOne({ idDevice });
+
+    const initials = getNameInitials(user.fullName);
+
+    return {
+      mail: user.mail,
+      name: user.fullName,
+      id: user.idDevice,
+      colour: rainbowGenerate(
+        initials.codePointAt(0)!,
+        initials.codePointAt(1)!,
+      ),
+    };
   }
 }

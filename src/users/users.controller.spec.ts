@@ -112,7 +112,10 @@ describe('UsersController', () => {
       vinculateDeviceBodyMock.idDevice,
     );
     expect(responseMock.status).toHaveBeenCalledWith(200);
-    expect(responseJsonMock.json).toHaveBeenCalledWith({ message: 'ok' });
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      message: 'ok',
+      updatedResposne: true,
+    });
   });
 
   it('When /vinculateDevice is called and with non exist idDevice or mailUser, then vinculateDevice should be called and httpStatus code should be 304', async () => {

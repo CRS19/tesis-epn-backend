@@ -35,6 +35,12 @@ describe('UsersService', () => {
     password: 'dsfasdf',
     rol: rolesEnum.USER,
   };
+  let userAsNodesResponseExpected = {
+    colour: '#79ff00',
+    id: '1234',
+    mail: 'crs@gmail.com',
+    name: 'crs test',
+  };
   const userRequest: CreateUserRequestDTO = {
     fullName: 'CRS test',
     mail: 'a@a.com',
@@ -77,6 +83,9 @@ describe('UsersService', () => {
   const findUser = (mail) =>
     usersArrayStored.find((user) => user.mail === mail);
 
+  const findUserByIdDevice = (idDevice) =>
+    [mockCreateUserServiceResponse].find((user) => user.idDevice === idDevice);
+
   const filterUser = (mail) =>
     usersArrayStored.filter((user) => user.mail === mail);
 
@@ -117,11 +126,14 @@ describe('UsersService', () => {
 
     mail = 'testMail';
     findOneMock.mockResolvedValue(find(mail));
-    findOneAndUpdateMock;
+    findOneAndUpdateMock.mockResolvedValue({ ...find(mail), idDevice });
 
     const response = service.vinculateDevice(mail, idDevice);
 
-    await expect(response).resolves.toEqual(true);
+    await expect(response).resolves.toEqual({
+      _doc: { password: undefined },
+      idDevice: 'abc',
+    });
     expect(findOneMock).toHaveBeenCalledTimes(1);
     expect(findOneAndUpdateMock).toHaveBeenCalledTimes(1);
   });
@@ -154,5 +166,126 @@ describe('UsersService', () => {
     const response = await service.createNewUser(userRequest);
 
     expect({ ...response, password: 'secret' }).toEqual(userRequest);
+  });
+
+  it('When getUsersAsNodes is called, then it should return an user as node', async () => {
+    const idDevice = '1234';
+    findOneMock.mockResolvedValue(findUserByIdDevice(idDevice));
+
+    const response = await service.getUsersAsNodes(idDevice);
+
+    expect(response).toEqual(userAsNodesResponseExpected);
+  });
+
+  it('When getUsersAsNodes is called, with name Maria Perez, it should create color #ff3b00 ', async () => {
+    const idDevice = '1234';
+    findOneMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      fullName: 'Maria Perez',
+    });
+
+    const response = await service.getUsersAsNodes(idDevice);
+
+    expect(response).toEqual({
+      ...userAsNodesResponseExpected,
+      name: 'Maria Perez',
+      colour: '#ff3b00',
+    });
+  });
+
+  it('When getUsersAsNodes is called, with name Angel Zapata, it should create color #00ff4e ', async () => {
+    const idDevice = '1234';
+    findOneMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      fullName: 'Angel Zapata',
+    });
+
+    const response = await service.getUsersAsNodes(idDevice);
+
+    expect(response).toEqual({
+      ...userAsNodesResponseExpected,
+      name: 'Angel Zapata',
+      colour: '#00ff4e',
+    });
+  });
+
+  it('When getUsersAsNodes is called, with name Erik Zapata, it should create color #2cff00 ', async () => {
+    const idDevice = '1234';
+    findOneMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      fullName: 'Erik Zapata',
+    });
+
+    const response = await service.getUsersAsNodes(idDevice);
+
+    expect(response).toEqual({
+      ...userAsNodesResponseExpected,
+      name: 'Erik Zapata',
+      colour: '#2cff00',
+    });
+  });
+
+  it('When getUsersAsNodes is called, with name Wilmar Cristobal Santos, it should create color #ff0046 ', async () => {
+    const idDevice = '1234';
+    findOneMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      fullName: 'Wilmar Cristobal Santos',
+    });
+
+    const response = await service.getUsersAsNodes(idDevice);
+
+    expect(response).toEqual({
+      ...userAsNodesResponseExpected,
+      name: 'Wilmar Cristobal Santos',
+      colour: '#ff0046',
+    });
+  });
+
+  it('When getUsersAsNodes is called, with name Shakira Baracuda, it should create color #c400ff ', async () => {
+    const idDevice = '1234';
+    findOneMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      fullName: 'Shakira Baracuda',
+    });
+
+    const response = await service.getUsersAsNodes(idDevice);
+
+    expect(response).toEqual({
+      ...userAsNodesResponseExpected,
+      name: 'Shakira Baracuda',
+      colour: '#c400ff',
+    });
+  });
+
+  it('When getUsersAsNodes is called, with name } a, it should create color #00e0ff ', async () => {
+    const idDevice = '1234';
+    findOneMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      fullName: `${String.fromCharCode(125)} a`,
+    });
+
+    const response = await service.getUsersAsNodes(idDevice);
+
+    expect(response).toEqual({
+      ...userAsNodesResponseExpected,
+      name: '} a',
+      colour: '#00e0ff',
+    });
+  });
+
+  it('When getUsersAsNodes is called, with no name, it should create color #ff0000 ', async () => {
+    const idDevice = '1234';
+    findOneMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      fullName: undefined,
+    });
+
+    const response = await service.getUsersAsNodes(idDevice);
+
+    expect(response).toEqual({
+      ...userAsNodesResponseExpected,
+      name: undefined,
+      colour: '#ff0000',
+    });
   });
 });

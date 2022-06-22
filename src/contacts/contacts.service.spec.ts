@@ -1,8 +1,17 @@
+import { UsersService } from './../users/users.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContactsService } from './contacts.service';
 import { IContactRequest, IContacts } from './interfaces/contacts.interface';
 import { set } from 'lodash';
+import {
+  expectedValue,
+  firstCall,
+  secondCall,
+  twoExpected,
+  userRequestSecondCall,
+  userResponseFirstCall,
+} from './constants/testContants';
 
 describe('ContactsService', () => {
   let service: ContactsService;
@@ -23,12 +32,18 @@ describe('ContactsService', () => {
   let findOneMock = jest.fn();
   let findOneAndUpdateMock = jest.fn();
   let deleteOneMock = jest.fn();
+  let createNewUserMock = jest.fn();
+  let findUserMock = jest.fn();
+  let sortMock = jest.fn();
+  let getUsersAsNodesMock = jest.fn();
+  let sort2 = jest.fn();
 
   beforeEach(async () => {
     class eventModel {
       constructor(private data) {}
       save = jest.fn().mockResolvedValue(this.data);
       static find = findMock;
+      static sort = sortMock;
       static findOne = findOneMock;
       static findOneAndUpdate = findOneAndUpdateMock;
       static deleteOne = deleteOneMock;
@@ -37,6 +52,14 @@ describe('ContactsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ContactsService,
+        {
+          provide: UsersService,
+          useValue: {
+            createNewUser: createNewUserMock,
+            findUser: findUserMock,
+            getUsersAsNodes: getUsersAsNodesMock,
+          },
+        },
         {
           provide: getModelToken('contacts'),
           useValue: eventModel,
@@ -114,6 +137,50 @@ describe('ContactsService', () => {
 
     expect(response)
       .resolves.toEqual(undefined)
+      .catch((err) => console.log(err));
+  });
+
+  it('When buildData is called, then findContact should be called 1 times', async () => {
+    findMock.mockImplementation(() => ({
+      sort: sort2.mockResolvedValueOnce(firstCall),
+    }));
+
+    getUsersAsNodesMock.mockReturnValueOnce(userResponseFirstCall);
+    getUsersAsNodesMock.mockReturnValueOnce(userRequestSecondCall);
+
+    const response = service.buildData('1');
+
+    expect(findMock).toHaveBeenCalledTimes(1);
+    expect(response)
+      .resolves.toStrictEqual(expectedValue)
+      .catch((err) => console.log(err));
+  });
+
+  it('When buildData is called, then findContact should be called 1 times', async () => {
+    findMock.mockImplementation(() => ({
+      sort: sort2.mockResolvedValueOnce([
+        ...firstCall,
+        {
+          _id: '62ae3702391f822d8831cef4',
+          idDevice: '4',
+          idContactDevice: '3',
+        },
+        {
+          _id: '62ae3702391f822d8831cadf',
+          idDevice: '4',
+          idContactDevice: '3',
+        },
+      ]),
+    }));
+
+    getUsersAsNodesMock.mockReturnValueOnce(userResponseFirstCall);
+    getUsersAsNodesMock.mockReturnValueOnce(userRequestSecondCall);
+
+    const response = service.buildData('3');
+
+    expect(findMock).toHaveBeenCalledTimes(1);
+    expect(response)
+      .resolves.toStrictEqual(twoExpected)
       .catch((err) => console.log(err));
   });
 });
