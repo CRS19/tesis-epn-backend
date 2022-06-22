@@ -20,6 +20,51 @@ describe('ContactsController', () => {
     timestampInit: 1652154938619,
     timestampEnd: 1652155747284,
   };
+  let builDataMockResponse = {
+    nodes: [
+      {
+        mail: 'lucho@gmail.com',
+        name: 'Luis Test',
+        id: '1',
+        colour: '#ffa100',
+      },
+      {
+        mail: 'dolores@gmail.com',
+        name: 'Maria Dolores',
+        id: '2',
+        colour: '#ff00b2',
+      },
+      {
+        mail: 'torres@gmail.com',
+        name: 'Marta Torres',
+        id: '4',
+        colour: '#ff8b00',
+      },
+      {
+        mail: 'lopez@gmail.com',
+        name: 'Viviana Lopez ',
+        id: '6',
+        colour: '#ff00b1',
+      },
+    ],
+    links: [
+      {
+        value: 4,
+        source: '1',
+        target: '2',
+      },
+      {
+        value: 1,
+        source: '1',
+        target: '4',
+      },
+      {
+        value: 2,
+        source: '2',
+        target: '6',
+      },
+    ],
+  };
 
   let responseJsonMock = {
     json: jest.fn((x) => x),
@@ -31,6 +76,7 @@ describe('ContactsController', () => {
   } as unknown as Response;
 
   let createContactMock = jest.fn();
+  let buildDataMock = jest.fn();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,6 +86,7 @@ describe('ContactsController', () => {
           provide: ContactsService,
           useValue: {
             createContact: createContactMock,
+            buildData: buildDataMock,
           },
         },
       ],
@@ -84,6 +131,18 @@ describe('ContactsController', () => {
     expect(responseMock.status).toHaveBeenCalledWith(304);
     expect(responseJsonMock.json).toHaveBeenCalledWith({
       message: 'Contacto no iniciado',
+    });
+  });
+
+  it('When data/:idDevice GET method is called, with currect idDevice, then resopnse code should be 200', async () => {
+    buildDataMock.mockReturnValue(builDataMockResponse);
+
+    await controller.getDataToPlot(responseMock, '1');
+
+    expect(buildDataMock).toHaveBeenCalledTimes(1);
+    expect(responseMock.status).toHaveBeenCalledWith(200);
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      ...builDataMockResponse,
     });
   });
 });

@@ -56,7 +56,9 @@ export class UsersController {
     @Res() response,
     @Body() vinculateDevice: vinculateDeviceRequest,
   ) {
-    this.logger.log(` | vinculateDevice body -> ${vinculateDevice.mail}`);
+    this.logger.log(
+      ` | vinculateDevice body -> ${vinculateDevice.mail} ${vinculateDevice.idDevice}`,
+    );
     try {
       const { mail, idDevice } = vinculateDevice;
       const updatedResposne = await this.userService.vinculateDevice(
@@ -64,9 +66,10 @@ export class UsersController {
         idDevice,
       );
 
-      if (updatedResposne) {
+      if (!isNil(updatedResposne)) {
         response.status(HttpStatus.OK).json({
           message: 'ok',
+          updatedResposne,
         });
       } else {
         response.status(HttpStatus.NOT_MODIFIED).json({
