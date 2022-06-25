@@ -8,10 +8,13 @@ import { ContactsModule } from './contacts/contacts.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongodbConfigService } from './mongodb-config/mongodb-config.service';
 import { JwtConfigService } from './jwt-config/jwt-config.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PossibleSickAlertGateway } from './websockets/possibleSickAlert/possibleSickAlert.gateway';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useClass: MongodbConfigService,
@@ -21,6 +24,11 @@ import { JwtConfigService } from './jwt-config/jwt-config.service';
     ContactsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MongodbConfigService, JwtConfigService],
+  providers: [
+    AppService,
+    MongodbConfigService,
+    JwtConfigService,
+    PossibleSickAlertGateway,
+  ],
 })
 export class AppModule {}

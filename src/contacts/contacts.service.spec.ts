@@ -37,6 +37,7 @@ describe('ContactsService', () => {
   let sortMock = jest.fn();
   let getUsersAsNodesMock = jest.fn();
   let sort2 = jest.fn();
+  let updateNearNodeMock = jest.fn();
 
   beforeEach(async () => {
     class eventModel {
@@ -58,6 +59,7 @@ describe('ContactsService', () => {
             createNewUser: createNewUserMock,
             findUser: findUserMock,
             getUsersAsNodes: getUsersAsNodesMock,
+            updateNearNode: updateNearNodeMock,
           },
         },
         {
@@ -140,11 +142,12 @@ describe('ContactsService', () => {
       .catch((err) => console.log(err));
   });
 
-  it('When buildData is called, then findContact should be called 1 times', async () => {
+  it('When buildData is called, then findContact should be called 1 times first response', async () => {
     findMock.mockImplementation(() => ({
       sort: sort2.mockResolvedValueOnce(firstCall),
     }));
 
+    updateNearNodeMock.mockResolvedValue(true);
     getUsersAsNodesMock.mockReturnValueOnce(userResponseFirstCall);
     getUsersAsNodesMock.mockReturnValueOnce(userRequestSecondCall);
 
@@ -173,6 +176,7 @@ describe('ContactsService', () => {
       ]),
     }));
 
+    updateNearNodeMock.mockResolvedValue(true);
     getUsersAsNodesMock.mockReturnValueOnce(userResponseFirstCall);
     getUsersAsNodesMock.mockReturnValueOnce(userRequestSecondCall);
 

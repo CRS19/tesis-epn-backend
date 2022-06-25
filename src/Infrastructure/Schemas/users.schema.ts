@@ -5,8 +5,17 @@ export const UserSchema = new Schema({
   idDevice: String,
   isDevice: Boolean,
   isPossibleSick: Boolean,
+  isPossibleSickTs: Number,
   isSick: Boolean,
   mail: String,
   password: String,
   rol: String,
+  nearNodes: [
+    {
+      mail: String,
+      name: String,
+      id: String,
+      colour: String,
+    },
+  ],
 });
