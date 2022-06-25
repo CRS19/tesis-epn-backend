@@ -2,14 +2,18 @@ import { UsersService } from './../users/users.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { getTimestampNow } from '../utils/time-utils';
+import {
+  getTimestampNow,
+  getTimestampOfTwoWeeksAgo,
+} from '../utils/time-utils';
 import { IContactRequest, IContactsDB } from './interfaces/contacts.interface';
-import { set, isNil, last, get } from 'lodash';
+import { set, isNil, uniqWith, isEqual, tail } from 'lodash';
 import {
   IGraphData,
   ILayerListAndLinks,
   ILink,
   ILinkToGraph,
+  INode,
   IReducedListContact,
 } from './interfaces/buildData.interfaces';
 import {
@@ -79,6 +83,10 @@ export class ContactsService {
     const rootLayerOneList = await this.contactsModel
       .find({
         idDevice: idDeviceRoot,
+        timestampInit: {
+          $gt: getTimestampOfTwoWeeksAgo(),
+          $lt: getTimestampNow(),
+        },
       })
       .sort({ idContactDevice: 'asc' });
 
@@ -89,10 +97,14 @@ export class ContactsService {
 
     const promises = layerOne.reducedLists.map(
       async (reducedList: IReducedListContact) => {
-        // TODO: verify possible error smell
+        // TODO: verify possible error smell,
         return await this.contactsModel
           .find({
             idDevice: reducedList.idContactDevice,
+            timestampInit: {
+              $gt: getTimestampOfTwoWeeksAgo(),
+              $lt: getTimestampNow(),
+            },
           })
           .sort({ idContactDevice: 'asc' });
       },
@@ -122,7 +134,7 @@ export class ContactsService {
 
     const fullLayer: ILayerListAndLinks = {
       reducedLists: [...layerOne.reducedLists, ...layerTwo.reducedLists],
-      links: [...layerOne.links, ...layerTwo.links],
+      links: this.buildFullLayerLinks(layerOne.links, layerTwo.links),
     };
 
     const rootNode = await this.userService.getUsersAsNodes(idDeviceRoot);
@@ -135,7 +147,11 @@ export class ContactsService {
 
     const layerNodes = pepe.flat();
 
-    const fullNodes = [rootNode, ...layerNodes];
+    const fullNodesWithDuplicatesNodes = [rootNode, ...layerNodes];
+
+    const fullNodes: INode[] = uniqWith(fullNodesWithDuplicatesNodes, isEqual);
+
+    await this.userService.updateNearNode(fullNodes[0].mail, tail(fullNodes));
 
     const nodesAndLinks = {
       nodes: fullNodes,
@@ -149,6 +165,26 @@ export class ContactsService {
     };
 
     return nodesAndLinks;
+  }
+
+  private buildFullLayerLinks(layerOne: ILink[], layerTwo: ILink[]): ILink[] {
+    let directory = {};
+
+    layerOne.map((link, index) => {
+      directory[link.idContactDevice] = index;
+    });
+
+    layerTwo.map((link) => {
+      if (directory[link.idContactDevice] !== undefined) {
+        layerOne[directory[link.idContactDevice]].idContactDevice =
+          layerOne[directory[link.idContactDevice]].idDevice;
+
+        layerOne[directory[link.idContactDevice]].idDevice =
+          link.idContactDevice;
+      }
+    });
+
+    return [...layerOne, ...layerTwo];
   }
 
   private calculateDistance(rssi: number) {

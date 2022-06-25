@@ -1,3 +1,4 @@
+import { INode } from './../../contacts/interfaces/buildData.interfaces';
 import { IsBoolean, IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { IUser } from '../interfaces/users.interfaces';
 
@@ -28,4 +29,8 @@ export class CreateUserRequestDTO implements IUser {
 
   @IsBoolean({ message: 'El campo debe ser booleano' })
   isDevice: boolean;
+
+  isPossibleSickTs: number;
+
+  nearNodes: INode[];
 }

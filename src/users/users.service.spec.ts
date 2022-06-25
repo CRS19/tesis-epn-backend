@@ -1,3 +1,4 @@
+import { PossibleSickAlertGateway } from './../websockets/possibleSickAlert/possibleSickAlert.gateway';
 import { rolesEnum } from './../auth/Enums/RolesEnum';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
@@ -12,7 +13,9 @@ describe('UsersService', () => {
   let findOneMock = jest.fn();
   let findOneAndUpdateMock = jest.fn();
   let deleteOneMock = jest.fn();
+  let updateOneMock = jest.fn();
   let existsMock = jest.fn();
+  let updateManyMock = jest.fn();
   let testUserFound = {
     fullName: 'CRS test',
     mail: 'testMail',
@@ -50,6 +53,33 @@ describe('UsersService', () => {
     isSick: false,
     isPossibleSick: false,
     rol: rolesEnum.USER,
+    isPossibleSickTs: 0,
+    nearNodes: [],
+  };
+  const updateIsSickUserMockResponse = {
+    fullName: 'crs test',
+    idDevice: '1234',
+    isDevice: false,
+    isPossibleSick: false,
+    isSick: false,
+    mail: 'crs@gmail.com',
+    password: 'dsfasdf',
+    rol: 'user',
+    nearNodes: [
+      {
+        mail: 'lucho@gmail.com',
+        name: 'Luis Test',
+        id: '1',
+        colour: '#ffa100',
+      },
+      {
+        mail: 'dolores@gmail.com',
+        name: 'Maria Dolores',
+        id: '2',
+        colour: '#ff00b2',
+      },
+    ],
+    _doc: {},
   };
 
   beforeEach(async () => {
@@ -59,13 +89,26 @@ describe('UsersService', () => {
       static find = findMock;
       static findOne = findOneMock;
       static findOneAndUpdate = findOneAndUpdateMock;
+      static updateOne = updateOneMock;
       static deleteOne = deleteOneMock;
       static exists = existsMock;
+      static updateMany = updateManyMock;
     }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
+        {
+          provide: PossibleSickAlertGateway,
+          useValue: {
+            server: {
+              emit: jest.fn(),
+            },
+            afterInit: jest.fn(),
+            handleConnection: jest.fn(),
+            handleDisconnect: jest.fn(),
+          },
+        },
         {
           provide: getModelToken('users'),
           useValue: eventModel,
@@ -287,5 +330,123 @@ describe('UsersService', () => {
       name: undefined,
       colour: '#ff0000',
     });
+  });
+
+  it('When getUserByMail is called with an exist user, then it should return an user', async () => {
+    findOneMock.mockResolvedValue(findUser('testMail'));
+
+    const response = await service.getUserByMail('testMail');
+
+    expect(response).toEqual(findUser('testMail'));
+
+    expect(findOneMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('When updateNearNode is called with an exist user, then it should update nearNode property', async () => {
+    const idDevice = '1234';
+
+    findOneMock.mockResolvedValue(findUserByIdDevice(idDevice));
+    findOneAndUpdateMock.mockResolvedValue(findUserByIdDevice(idDevice));
+
+    const response = await service.updateNearNode(idDevice, []);
+
+    expect(response).toEqual(true);
+    expect(findOneMock).toHaveBeenCalledTimes(1);
+    expect(findOneAndUpdateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('When updateNearNode is called with an exist user, then it should not update nearNode property', async () => {
+    const idDevice = '1234';
+
+    findOneMock.mockResolvedValue(undefined);
+    findOneAndUpdateMock.mockResolvedValue(findUserByIdDevice(idDevice));
+
+    const response = await service.updateNearNode(idDevice, []);
+
+    expect(response).toEqual(false);
+    expect(findOneMock).toHaveBeenCalledTimes(1);
+    expect(findOneAndUpdateMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('When updateNearNode is called with an exist user but findOneAndUpdate fails, then it should not update nearNode property', async () => {
+    const idDevice = '1234';
+
+    findOneMock.mockResolvedValue(findUserByIdDevice(idDevice));
+    findOneAndUpdateMock.mockResolvedValue(undefined);
+
+    const response = await service.updateNearNode(idDevice, []);
+
+    expect(response).toEqual(false);
+    expect(findOneMock).toHaveBeenCalledTimes(1);
+    expect(findOneAndUpdateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('When updateIsSick is called with an exist user, then it should update isSick property', async () => {
+    const idDevice = '1234';
+
+    findOneMock.mockResolvedValue(findUserByIdDevice(idDevice));
+    findOneAndUpdateMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      nearNodes: [
+        {
+          mail: 'lucho@gmail.com',
+          name: 'Luis Test',
+          id: '1',
+          colour: '#ffa100',
+        },
+        {
+          mail: 'dolores@gmail.com',
+          name: 'Maria Dolores',
+          id: '2',
+          colour: '#ff00b2',
+        },
+      ],
+    });
+    updateOneMock.mockReturnValue(true);
+
+    const response = await service.updateIsSick(idDevice, true);
+
+    expect(response).toEqual(updateIsSickUserMockResponse);
+    expect(findOneMock).toHaveBeenCalledTimes(1);
+    expect(findOneAndUpdateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('When updateIsSick is called with a non exist user, then it should update isSick property', async () => {
+    const idDevice = '1234';
+
+    findOneMock.mockResolvedValue(undefined);
+    findOneAndUpdateMock.mockResolvedValue({
+      ...findUserByIdDevice(idDevice),
+      nearNodes: [
+        {
+          mail: 'lucho@gmail.com',
+          name: 'Luis Test',
+          id: '1',
+          colour: '#ffa100',
+        },
+        {
+          mail: 'dolores@gmail.com',
+          name: 'Maria Dolores',
+          id: '2',
+          colour: '#ff00b2',
+        },
+      ],
+    });
+    updateOneMock.mockReturnValue(true);
+
+    const response = await service.updateIsSick(idDevice, true);
+
+    expect(response).toEqual(undefined);
+    expect(findOneMock).toHaveBeenCalledTimes(1);
+    expect(findOneAndUpdateMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('When setPossibleSickToFalse is called, updateMany should be called', async () => {
+    updateManyMock.mockReturnValue({ modifiedCount: 3 });
+
+    const response = await service.setPossibleSickToFalse();
+
+    expect(response).toEqual(true);
+    expect(updateManyMock).toHaveBeenCalledTimes(1);
   });
 });

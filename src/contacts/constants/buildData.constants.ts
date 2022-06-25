@@ -43,7 +43,7 @@ export const buildReducedListsAndLayerLinks = (
   };
 };
 
-export const INITIAL_REDUCED_LIST_AND_LINKS = {
+export const INITIAL_REDUCED_LIST_AND_LINKS: ILayerListAndLinks = {
   reducedLists: [],
   links: [],
 };
