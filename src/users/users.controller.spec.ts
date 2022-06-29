@@ -5,7 +5,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { unset } from 'lodash';
 import { vinculateDeviceRequest } from './dto/vinculateDeviceRequest.dto';
-import { IUsersDB } from './interfaces/users.interfaces';
+import { USER_TEST_RESPONSE_MOCK } from './constants/TestConstants';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -110,7 +110,7 @@ describe('UsersController', () => {
   });
 
   it('When /vinculateDevice is called, then vinculateDevice should be called', async () => {
-    vinculateDeviceMock.mockReturnValue(true);
+    vinculateDeviceMock.mockReturnValue(USER_TEST_RESPONSE_MOCK);
     await controller.vinculateDevice(responseMock, vinculateDeviceBodyMock);
 
     expect(vinculateDeviceMock).toHaveBeenCalledWith(
@@ -120,7 +120,7 @@ describe('UsersController', () => {
     expect(responseMock.status).toHaveBeenCalledWith(200);
     expect(responseJsonMock.json).toHaveBeenCalledWith({
       message: 'ok',
-      updatedResposne: true,
+      updatedResposne: USER_TEST_RESPONSE_MOCK,
     });
   });
 
@@ -226,6 +226,21 @@ describe('UsersController', () => {
     expect(responseMock.status).toHaveBeenCalledWith(304);
     expect(responseJsonMock.json).toHaveBeenCalledWith({
       message: 'Error while get user',
+    });
+  });
+
+  it('When /vinculateDevice is called with incorrect user, then vinculateDevice should be called and httpStatus code should be 304', async () => {
+    vinculateDeviceMock.mockReturnValue(undefined);
+
+    await controller.vinculateDevice(responseMock, vinculateDeviceBodyMock);
+
+    expect(vinculateDeviceMock).toHaveBeenCalledWith(
+      vinculateDeviceBodyMock.mail,
+      vinculateDeviceBodyMock.idDevice,
+    );
+    expect(responseMock.status).toHaveBeenCalledWith(304);
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      message: 'mail Incorrect',
     });
   });
 });

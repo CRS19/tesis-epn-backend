@@ -22,3 +22,10 @@ export interface IContactsDB extends Document {
   timestampInit: number;
   timestampEnd: number;
 }
+
+export interface IContactsTableInfo {
+  name: string;
+  duration: string;
+  idDevice: string;
+  date: string;
+}

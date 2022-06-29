@@ -6,6 +6,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { CreateUserRequestDTO } from './dto/createUserRequest.dto';
 import { find } from 'rxjs';
 import { IUsersDB } from './interfaces/users.interfaces';
+import { USER_TEST_RESPONSE_MOCK } from './constants/TestConstants';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -190,7 +191,7 @@ describe('UsersService', () => {
 
     const response = service.vinculateDevice(mail, idDevice);
 
-    await expect(response).resolves.toEqual(false);
+    await expect(response).resolves.toEqual(undefined);
     expect(findOneMock).toHaveBeenCalledTimes(1);
     expect(findOneAndUpdateMock).toHaveBeenCalledTimes(0);
   });
@@ -448,5 +449,30 @@ describe('UsersService', () => {
 
     expect(response).toEqual(true);
     expect(updateManyMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('When vinculateDevice is called with a idDevice previus vinculated, then should return false and findOneAndUpdate should not be called', async () => {
+    const idDevice = 'abc';
+
+    mail = 'testMail';
+    existsMock.mockResolvedValue(true);
+    findOneMock.mockResolvedValue(undefined);
+    findOneAndUpdateMock;
+
+    const response = service.vinculateDevice(mail, idDevice);
+
+    await expect(response).resolves.toEqual(undefined);
+    expect(existsMock).toHaveBeenCalledTimes(1);
+    expect(findOneMock).toHaveBeenCalledTimes(0);
+    expect(findOneAndUpdateMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('When findUserByIdDevice is called, then findOneMock should be called', async () => {
+    findOneMock.mockResolvedValue(USER_TEST_RESPONSE_MOCK);
+
+    const response = await service.findUserByIdDevice('1');
+
+    expect(response).toEqual(USER_TEST_RESPONSE_MOCK);
+    expect(findOneMock).toHaveBeenCalledTimes(1);
   });
 });

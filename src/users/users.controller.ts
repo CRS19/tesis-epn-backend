@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
-import { isNil } from 'lodash';
+import { get, isNil } from 'lodash';
 
 @Controller('users')
 export class UsersController {
@@ -71,7 +71,7 @@ export class UsersController {
         idDevice,
       );
 
-      if (!isNil(updatedResposne)) {
+      if (!isNil(get(updatedResposne, 'fullName'))) {
         response.status(HttpStatus.OK).json({
           message: 'ok',
           updatedResposne,

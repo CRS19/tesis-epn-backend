@@ -3,10 +3,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
+  getDateFromTimestamp,
+  getTimeDifference,
   getTimestampNow,
   getTimestampOfTwoWeeksAgo,
 } from '../utils/time-utils';
-import { IContactRequest, IContactsDB } from './interfaces/contacts.interface';
+import {
+  IContactRequest,
+  IContactsDB,
+  IContactsTableInfo,
+} from './interfaces/contacts.interface';
 import { set, isNil, uniqWith, isEqual, tail } from 'lodash';
 import {
   IGraphData,
@@ -167,6 +173,48 @@ export class ContactsService {
     return nodesAndLinks;
   }
 
+  async getContacts(
+    idDevice: string,
+  ): Promise<{ contacts: IContactsTableInfo[]; documentsCount: number }> {
+    const documentsCount = await this.contactsModel.countDocuments({
+      idDevice,
+      timestampInit: {
+        $gt: getTimestampOfTwoWeeksAgo(),
+        $lt: getTimestampNow(),
+      },
+      timestampEnd: { $ne: undefined },
+    });
+
+    this.logger.debug(`document conunter -> ${documentsCount}`);
+
+    const contacts = await this.contactsModel
+      .find({
+        idDevice,
+        timestampInit: {
+          $gt: getTimestampOfTwoWeeksAgo(),
+          $lt: getTimestampNow(),
+        },
+        timestampEnd: { $ne: undefined },
+      })
+      .sort({ timestampInit: -1 });
+
+    this.logger.debug(`contacts -> ${JSON.stringify(contacts, null, 3)}`);
+
+    if (contacts.length === 0) return;
+
+    const contactsTableData = await this.buildContactsTableData(contacts);
+
+    this.logger.debug(
+      `Este son los contactos contruidos -> ${JSON.stringify(
+        contactsTableData,
+        null,
+        3,
+      )}`,
+    );
+
+    return { contacts: contactsTableData, documentsCount };
+  }
+
   private buildFullLayerLinks(layerOne: ILink[], layerTwo: ILink[]): ILink[] {
     let directory = {};
 
@@ -188,7 +236,32 @@ export class ContactsService {
   }
 
   private calculateDistance(rssi: number) {
-    console.log('elpepe');
     return rssi * this.a;
+  }
+
+  private async buildContactsTableData(
+    contacts: IContactsDB[],
+  ): Promise<IContactsTableInfo[]> {
+    const buildedDataPromises = contacts.map(
+      async (contact): Promise<IContactsTableInfo> => {
+        const contactUser = await this.userService.findUserByIdDevice(
+          contact.idContactDevice,
+        );
+
+        this.logger.debug(`usuario encontrado ?? -> ${contactUser.fullName}`);
+
+        return {
+          name: contactUser.fullName,
+          duration: getTimeDifference(
+            contact.timestampInit,
+            contact.timestampEnd,
+          ),
+          idDevice: contact.idContactDevice,
+          date: getDateFromTimestamp(contact.timestampInit),
+        };
+      },
+    );
+
+    return await Promise.all(buildedDataPromises);
   }
 }
