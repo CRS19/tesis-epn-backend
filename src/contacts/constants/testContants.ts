@@ -145,3 +145,38 @@ export const twoExpected = {
     { value: 1, source: '1', target: '4' },
   ],
 };
+
+export const getContactsMockRepsonse = [
+  {
+    _id: '62ae3702391f822d8831cef4',
+    idDevice: '1',
+    idContactDevice: '2',
+    timestampInit: 1655937327000,
+    timestampEnd: 1655937507000,
+  },
+  {
+    _id: '62ae374a391f822d8831cef5',
+    idDevice: '1',
+    idContactDevice: '2',
+    timestampInit: 1655912127000,
+    timestampEnd: 1655912142000,
+  },
+];
+
+export const getContactsDataTableResponse = {
+  contacts: [
+    {
+      date: '2022/06/22',
+      duration: '3 minutos',
+      idDevice: '2',
+      name: 'CRS test',
+    },
+    {
+      date: '2022/06/22',
+      duration: '15 segundos',
+      idDevice: '2',
+      name: 'CRS test',
+    },
+  ],
+  documentsCount: 2,
+};

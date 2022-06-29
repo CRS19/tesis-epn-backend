@@ -66,6 +66,24 @@ describe('ContactsController', () => {
     ],
   };
 
+  let buildTableDataMockResponse = {
+    documentsCount: 2,
+    contacts: [
+      {
+        name: 'Maria Dolores',
+        duration: '3 minutos',
+        idDevice: '2',
+        date: '2022/06/22',
+      },
+      {
+        name: 'Maria Dolores',
+        duration: '15 segundos',
+        idDevice: '2',
+        date: '2022/06/22',
+      },
+    ],
+  };
+
   let responseJsonMock = {
     json: jest.fn((x) => x),
   };
@@ -77,6 +95,7 @@ describe('ContactsController', () => {
 
   let createContactMock = jest.fn();
   let buildDataMock = jest.fn();
+  let getContactsMock = jest.fn();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -87,6 +106,7 @@ describe('ContactsController', () => {
           useValue: {
             createContact: createContactMock,
             buildData: buildDataMock,
+            getContacts: getContactsMock,
           },
         },
       ],
@@ -143,6 +163,43 @@ describe('ContactsController', () => {
     expect(responseMock.status).toHaveBeenCalledWith(200);
     expect(responseJsonMock.json).toHaveBeenCalledWith({
       ...builDataMockResponse,
+    });
+  });
+
+  it('When getContacts/:idDevice GET method is called, with currect idDevice, then resopnse code should be 200', async () => {
+    getContactsMock.mockReturnValue(buildTableDataMockResponse);
+
+    await controller.getContacts(responseMock, '1');
+
+    expect(getContactsMock).toHaveBeenCalledTimes(1);
+    expect(responseMock.status).toHaveBeenCalledWith(200);
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      totalCount: buildTableDataMockResponse.documentsCount,
+      contacts: buildTableDataMockResponse.contacts,
+    });
+  });
+
+  it('When getContacts/:idDevice is called and theres no data to process, then response code should be 204 ', async () => {
+    getContactsMock.mockReturnValue({});
+
+    await controller.getContacts(responseMock, '1');
+
+    expect(getContactsMock).toHaveBeenCalledTimes(1);
+    expect(responseMock.status).toHaveBeenCalledWith(204);
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      message: 'No existen aun contactos para este dispositivo',
+    });
+  });
+
+  it('When getContacts/:idDevice is called and get contacts fails, then response code should be 404 ', async () => {
+    getContactsMock.mockRejectedValue(undefined);
+
+    await controller.getContacts(responseMock, '1');
+
+    expect(getContactsMock).toHaveBeenCalledTimes(1);
+    expect(responseMock.status).toHaveBeenCalledWith(404);
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      message: 'Error de servidor',
     });
   });
 });

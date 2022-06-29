@@ -15,7 +15,7 @@ import { rolesEnum } from '../auth/Enums/RolesEnum';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/Guards/Roles.guard';
 import { IContactRequest } from './interfaces/contacts.interface';
-import { isNil } from 'lodash';
+import { isEmpty, isNil } from 'lodash';
 
 @Controller('contacts')
 export class ContactsController {
@@ -73,5 +73,34 @@ export class ContactsController {
         ...resposne,
       });
     } catch (e) {}
+  }
+
+  @Get('getContacts/:idDevice')
+  @hasRoles(rolesEnum.USER)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  async getContacts(@Res() res, @Param('idDevice') idDevice: string) {
+    this.logger.log(` | getContacts  idDevice -> ${idDevice}`);
+
+    try {
+      const response = await this.contactsService.getContacts(idDevice);
+
+      if (!isEmpty(response)) {
+        res.status(HttpStatus.OK).json({
+          totalCount: response.documentsCount,
+          contacts: response.contacts,
+        });
+        return;
+      }
+
+      res.status(HttpStatus.NO_CONTENT).json({
+        message: 'No existen aun contactos para este dispositivo',
+      });
+      return;
+    } catch (e) {
+      res.status(HttpStatus.NOT_FOUND).json({
+        message: 'Error de servidor',
+      });
+      return;
+    }
   }
 }

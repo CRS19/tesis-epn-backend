@@ -18,9 +18,7 @@ import { Server, Socket } from 'socket.io';
 export class PossibleSickAlertGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor() {
-    console.log('WEBSOCKET MOUNTER');
-  }
+  constructor() {}
   private readonly logger = new Logger(PossibleSickAlertGateway.name);
   @WebSocketServer() server: Server;
 

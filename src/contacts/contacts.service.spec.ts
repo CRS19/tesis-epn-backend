@@ -1,3 +1,4 @@
+import { USER_TEST_RESPONSE_MOCK } from './../users/constants/TestConstants';
 import { UsersService } from './../users/users.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -7,6 +8,8 @@ import { set } from 'lodash';
 import {
   expectedValue,
   firstCall,
+  getContactsDataTableResponse,
+  getContactsMockRepsonse,
   secondCall,
   twoExpected,
   userRequestSecondCall,
@@ -38,6 +41,8 @@ describe('ContactsService', () => {
   let getUsersAsNodesMock = jest.fn();
   let sort2 = jest.fn();
   let updateNearNodeMock = jest.fn();
+  let countDocumentsMock = jest.fn();
+  let findUserByIdDeviceMock = jest.fn();
 
   beforeEach(async () => {
     class eventModel {
@@ -48,6 +53,7 @@ describe('ContactsService', () => {
       static findOne = findOneMock;
       static findOneAndUpdate = findOneAndUpdateMock;
       static deleteOne = deleteOneMock;
+      static countDocuments = countDocumentsMock;
     }
 
     const module: TestingModule = await Test.createTestingModule({
@@ -58,6 +64,7 @@ describe('ContactsService', () => {
           useValue: {
             createNewUser: createNewUserMock,
             findUser: findUserMock,
+            findUserByIdDevice: findUserByIdDeviceMock,
             getUsersAsNodes: getUsersAsNodesMock,
             updateNearNode: updateNearNodeMock,
           },
@@ -186,5 +193,38 @@ describe('ContactsService', () => {
     expect(response)
       .resolves.toStrictEqual(twoExpected)
       .catch((err) => console.log(err));
+  });
+
+  it('When getContacts is called, then findContact should be called 1 times', async () => {
+    findMock.mockClear();
+    sort2.mockClear();
+
+    findMock.mockImplementation(() => ({
+      sort: sort2.mockResolvedValueOnce(getContactsMockRepsonse),
+    }));
+    countDocumentsMock.mockResolvedValue(2);
+    findUserByIdDeviceMock.mockResolvedValue(USER_TEST_RESPONSE_MOCK);
+
+    const response = await service.getContacts('1');
+
+    expect(response).toEqual(getContactsDataTableResponse);
+    expect(findMock).toHaveBeenCalledTimes(1);
+    expect(countDocumentsMock).toHaveBeenCalledTimes(1);
+    expect(findUserByIdDeviceMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('When getContacts is called but find return empty array , then findContact should be called 1 times and getContactsDataTableResponse 0 times', async () => {
+    findMock.mockImplementation(() => ({
+      sort: sort2.mockResolvedValueOnce([]),
+    }));
+    countDocumentsMock.mockResolvedValue(2);
+    findUserByIdDeviceMock.mockResolvedValue(USER_TEST_RESPONSE_MOCK);
+
+    const response = await service.getContacts('1');
+
+    expect(response).toEqual(undefined);
+    expect(findMock).toHaveBeenCalledTimes(1);
+    expect(countDocumentsMock).toHaveBeenCalledTimes(1);
+    expect(findUserByIdDeviceMock).toHaveBeenCalledTimes(0);
   });
 });

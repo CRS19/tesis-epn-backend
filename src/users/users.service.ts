@@ -51,11 +51,27 @@ export class UsersService {
     return user;
   }
 
-  async vinculateDevice(mail: string, idDevice: string) {
-    this.logger.log(` | vinculateDevice mail -> ${mail} `);
+  async findUserByIdDevice(idDevice: string): Promise<IUsersDB> {
+    return await this.userModel.findOne({ idDevice });
+  }
+
+  async vinculateDevice(
+    mail: string,
+    idDevice: string,
+  ): Promise<IUsersDB | undefined> {
+    this.logger.log(
+      ` | vinculateDevice mail -> ${mail} idDevice -> ${idDevice} `,
+    );
+    if (idDevice !== '') {
+      const idDeviceIsVinculated = await this.userModel.exists({ idDevice });
+      if (!isNil(idDeviceIsVinculated)) {
+        return;
+      }
+    }
+
     const user = await this.userModel.findOne({ mail });
 
-    if (isNil(user)) return false;
+    if (isNil(user)) return;
 
     const newUser = { ...user, _doc: { ...get(user, '_doc', {}), idDevice } };
 
@@ -66,7 +82,6 @@ export class UsersService {
     );
 
     set(updatedUser, '_doc.password', undefined);
-    console.log(updatedUser);
 
     return updatedUser;
   }
@@ -155,8 +170,6 @@ export class UsersService {
     }
 
     set(updatedUser, '_doc.password', undefined);
-
-    console.log(JSON.stringify(updatedUser));
 
     return updatedUser;
   }
