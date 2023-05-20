@@ -35,7 +35,8 @@ export class ContactsService {
     private readonly userService: UsersService,
   ) {}
   private readonly logger = new Logger(ContactsService.name);
-  private readonly a = 4;
+  private readonly A: number = -66.5;
+  private readonly N: number = 2.6;
 
   async createContact({
     idDevice,
@@ -236,7 +237,9 @@ export class ContactsService {
   }
 
   private calculateDistance(rssi: number) {
-    return rssi * this.a;
+    const distance = Math.pow(10, -(rssi - this.A) / (10 * this.N)).toFixed(2);
+
+    return distance;
   }
 
   private async buildContactsTableData(

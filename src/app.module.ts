@@ -9,7 +9,6 @@ import { ConfigModule } from '@nestjs/config';
 import { MongodbConfigService } from './mongodb-config/mongodb-config.service';
 import { JwtConfigService } from './jwt-config/jwt-config.service';
 import { ScheduleModule } from '@nestjs/schedule';
-import { PossibleSickAlertGateway } from './websockets/possibleSickAlert/possibleSickAlert.gateway';
 
 @Module({
   imports: [
@@ -27,8 +26,7 @@ import { PossibleSickAlertGateway } from './websockets/possibleSickAlert/possibl
   providers: [
     AppService,
     MongodbConfigService,
-    JwtConfigService,
-    PossibleSickAlertGateway,
+    JwtConfigService
   ],
 })
 export class AppModule {}

@@ -26,6 +26,7 @@ export class ContactsController {
   @hasRoles(rolesEnum.DEVICE)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   async createContact(@Res() response, @Body() body: IContactRequest) {
+    this.logger.debug(' | createContact body -> ', body);
     this.logger.log(
       ` POST | createContact contact idDevice -> ${body.idDevice} with idContactDevice -> ${body.idContactDevice}`,
     );
