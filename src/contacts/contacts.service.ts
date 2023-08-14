@@ -145,11 +145,13 @@ export class ContactsService {
     };
 
     const rootNode = await this.userService.getUsersAsNodes(idDeviceRoot);
+
     const nodesPromises = fullLayer.reducedLists.map(
       async (list: IReducedListContact) => {
         return await this.userService.getUsersAsNodes(list.idContactDevice);
       },
     );
+
     const pepe = await Promise.all(nodesPromises);
 
     const layerNodes = pepe.flat();
@@ -217,7 +219,7 @@ export class ContactsService {
   }
 
   private buildFullLayerLinks(layerOne: ILink[], layerTwo: ILink[]): ILink[] {
-    let directory = {};
+    const directory = {};
 
     layerOne.map((link, index) => {
       directory[link.idContactDevice] = index;

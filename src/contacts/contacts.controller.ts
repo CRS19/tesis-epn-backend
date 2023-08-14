@@ -73,7 +73,11 @@ export class ContactsController {
       res.status(HttpStatus.OK).json({
         ...resposne,
       });
-    } catch (e) {}
+    } catch (e) {
+      res.status(HttpStatus.NOT_FOUND).json({
+        message: 'Error de servidor',
+      });
+    }
   }
 
   @Get('getContacts/:idDevice')

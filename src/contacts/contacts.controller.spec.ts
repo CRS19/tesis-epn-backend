@@ -202,4 +202,16 @@ describe('ContactsController', () => {
       message: 'Error de servidor',
     });
   });
+
+  it('When data/:idDevice  is called and it fails, then response code should be 404', async () => {
+    buildDataMock.mockRejectedValue(undefined);
+
+    await controller.getDataToPlot(responseMock, '1');
+
+    expect(buildDataMock).toHaveBeenCalledTimes(1);
+    expect(responseMock.status).toHaveBeenCalledWith(404);
+    expect(responseJsonMock.json).toHaveBeenCalledWith({
+      message: 'Error de servidor',
+    });
+  });
 });
